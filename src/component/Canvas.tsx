@@ -3,15 +3,20 @@ import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { Stage as StageType } from "konva/lib/Stage";
 import { Stage, Layer } from "react-konva";
 import { RootState } from "@/store";
+import { styled } from "@mui/material";
 
 import useLocalStorage from "@/hook/useLocalStorage";
-
 import type { drawableInfoType } from "@/utils/type";
 import { ToolEnum } from "@/utils/const";
 
 import { setLayersHitory, setLayersNow, setDrawables } from "@/store/canvas";
 
 import { EllipseDrawable, RectDrawable, PolygonDrawable } from "./Drawable";
+
+const Root = styled("div")`
+  height: 100vh;
+  width: 80vw;
+`;
 
 const Canvas = () => {
   const dispatch = useDispatch();
@@ -64,8 +69,6 @@ const Canvas = () => {
     setDrawablePoints([]);
     isDrawing.current = false;
   };
-
-  //
 
   const selectDrawable = () => {
     if (stageRef?.current) {
@@ -214,14 +217,37 @@ const Canvas = () => {
         return null;
     }
   };
-  //
 
   useEffect(() => {
-    if (canvasRef.current) {
-      setCanvasContainer({
-        width: canvasRef.current.clientWidth,
-        height: canvasRef.current.clientHeight,
-      });
+    const canvasWidth = canvasRef?.current?.clientWidth;
+    const canvasHeight = canvasRef?.current?.clientHeight;
+
+    console.log({ canvasWidth, canvasHeight });
+
+    if (canvasWidth && canvasHeight) {
+      const canvasResize = () => {
+        setCanvasContainer({
+          width: canvasWidth,
+          height: canvasHeight,
+        });
+      };
+
+      window.addEventListener("resize", canvasResize);
+      return () => window.removeEventListener("resize", canvasResize);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!layersHistory.length && storedLayersHistory.length) {
+      dispatch(setLayersHitory(storedLayersHistory));
+      dispatch(setLayersNow(storedLayersNow));
+      dispatch(
+        setDrawables(
+          !storedLayersHistory[storedLayersNow]
+            ? []
+            : storedLayersHistory[storedLayersNow]
+        )
+      );
     }
   }, []);
 
@@ -249,7 +275,7 @@ const Canvas = () => {
   ]);
 
   return (
-    <div
+    <Root
       ref={canvasRef}
       onMouseMove={drawingDrawable}
       onMouseDown={startDrawDrawable}
@@ -271,7 +297,7 @@ const Canvas = () => {
           <Drawable drawableInfo={drawable} />
         </Layer>
       </Stage>
-    </div>
+    </Root>
   );
 };
 
