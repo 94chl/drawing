@@ -4,7 +4,6 @@ import { styled } from "@mui/material";
 
 const Root = styled("div")`
   display: flex;
-  background-color: pink;
 `;
 
 const DrawingTool = () => {
