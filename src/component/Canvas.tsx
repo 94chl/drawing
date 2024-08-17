@@ -6,7 +6,7 @@ import { RootState } from "@/store";
 import { styled } from "@mui/material";
 
 import useLocalStorage from "@/hook/useLocalStorage";
-import type { drawableInfoType } from "@/utils/type";
+import type { drawableInfoType, drawablePointsType } from "@/utils/type";
 import { ToolEnum } from "@/utils/const";
 
 import { setLayersHitory, setLayersNow, setDrawables } from "@/store/canvas";
@@ -33,7 +33,7 @@ const Canvas = () => {
     width: 0,
     height: 0,
   });
-  const [drawablePoints, setDrawablePoints] = useState<number[]>([]);
+  const [drawablePoints, setDrawablePoints] = useState<drawablePointsType>([]);
   const [drawable, setDrawable] = useState<drawableInfoType>({
     type: toolType,
     x: 0,
@@ -140,15 +140,12 @@ const Canvas = () => {
       return;
     }
 
-    const width = drawablePoints[0] - drawablePoints[drawablePoints.length - 2];
+    const width =
+      drawablePoints.length > 1 ? drawablePoints[0][0] - e.clientX : 0;
     const height =
-      drawablePoints[1] - drawablePoints[drawablePoints.length - 1];
-    const x =
-      width < 0 ? drawablePoints[0] : drawablePoints[drawablePoints.length - 2];
-    const y =
-      height < 0
-        ? drawablePoints[1]
-        : drawablePoints[drawablePoints.length - 1];
+      drawablePoints.length > 1 ? drawablePoints[0][1] - e.clientY : 0;
+    const x = width < 0 ? drawablePoints[0][0] : e.clientX;
+    const y = height < 0 ? drawablePoints[0][1] : e.clientY;
 
     const newDrawable = {
       type: toolType,
@@ -160,21 +157,12 @@ const Canvas = () => {
       color,
     };
 
-    const newDrawablePoints = [
-      ...drawablePoints.slice(
-        0,
-        drawablePoints.length > 2 ? drawablePoints.length - 2 : 2
-      ),
-      e.pageX,
-      e.pageY,
+    const newDrawablePoints: drawablePointsType = [
+      ...drawablePoints,
+      [e.clientX, e.clientY],
     ];
     setDrawablePoints(newDrawablePoints);
     newDrawable.points = newDrawablePoints;
-
-    if (drawable.type === ToolEnum.polygon && newDrawablePoints.length > 2) {
-      finishDrawingDrawable();
-      return;
-    }
 
     setDrawable(newDrawable);
   };
@@ -188,41 +176,18 @@ const Canvas = () => {
     }
   };
 
-  const Drawable = ({ drawableInfo }: { drawableInfo: drawableInfoType }) => {
-    const { type, color: color, x, y, width, height, points } = drawableInfo;
-    switch (type) {
-      case ToolEnum.ellipse:
-        return (
-          <EllipseDrawable
-            color={color}
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-          />
-        );
-      case ToolEnum.rect:
-        return (
-          <RectDrawable
-            color={color}
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-          />
-        );
-      case ToolEnum.polygon:
-        return <PolygonDrawable color={color} points={points} />;
-      default:
-        return null;
+  useEffect(() => {
+    if (canvasRef.current) {
+      setCanvasContainer({
+        width: canvasRef.current.clientWidth,
+        height: canvasRef.current.clientHeight,
+      });
     }
-  };
+  }, []);
 
   useEffect(() => {
     const canvasWidth = canvasRef?.current?.clientWidth;
     const canvasHeight = canvasRef?.current?.clientHeight;
-
-    console.log({ canvasWidth, canvasHeight });
 
     if (canvasWidth && canvasHeight) {
       const canvasResize = () => {
@@ -238,23 +203,11 @@ const Canvas = () => {
   }, []);
 
   useEffect(() => {
-    if (!layersHistory.length && storedLayersHistory.length) {
-      dispatch(setLayersHitory(storedLayersHistory));
-      dispatch(setLayersNow(storedLayersNow));
-      dispatch(
-        setDrawables(
-          !storedLayersHistory[storedLayersNow]
-            ? []
-            : storedLayersHistory[storedLayersNow]
-        )
-      );
-    }
-  }, []);
-
-  useEffect(() => {
     if (!storedLayersHistory[storedLayersNow])
       setStoredLayersNow(storedLayersHistory.length - 1);
+  }, [setStoredLayersNow, storedLayersHistory, storedLayersNow]);
 
+  useEffect(() => {
     if (!layersHistory.length && storedLayersHistory.length) {
       dispatch(setLayersHitory(storedLayersHistory));
       dispatch(setLayersNow(storedLayersNow));
@@ -266,13 +219,45 @@ const Canvas = () => {
         )
       );
     }
-  }, [
-    dispatch,
-    layersHistory,
-    setStoredLayersNow,
-    storedLayersHistory,
-    storedLayersNow,
-  ]);
+  }, [dispatch, layersHistory, storedLayersHistory, storedLayersNow]);
+
+  const Drawable = ({ drawableInfo }: { drawableInfo: drawableInfoType }) => {
+    const {
+      type,
+      color: drawableColor,
+      x,
+      y,
+      width,
+      height,
+      points,
+    } = drawableInfo;
+    switch (type) {
+      case ToolEnum.ellipse:
+        return (
+          <EllipseDrawable
+            color={drawableColor}
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+          />
+        );
+      case ToolEnum.rect:
+        return (
+          <RectDrawable
+            color={drawableColor}
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+          />
+        );
+      case ToolEnum.polygon:
+        return <PolygonDrawable color={drawableColor} points={points} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <Root
@@ -290,11 +275,10 @@ const Canvas = () => {
         <Layer>
           {drawables.map((drawableInfo, index) => {
             const key = `${drawableInfo.type}_${index}`;
-            console.log("drawableInfo", drawableInfo);
             return <Drawable drawableInfo={drawableInfo} key={key} />;
           })}
 
-          <Drawable drawableInfo={drawable} />
+          {drawablePoints.length > 0 && <Drawable drawableInfo={drawable} />}
         </Layer>
       </Stage>
     </Root>
