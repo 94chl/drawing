@@ -1,5 +1,5 @@
-import React from 'react';
-import { Line } from 'react-konva';
+import React from "react";
+import { Line } from "react-konva";
 
 type Props = {
   color: string;

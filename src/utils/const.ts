@@ -1,6 +1,6 @@
 export enum ToolEnum {
   select = "SELECT",
   rect = "RECT",
-  circle = "CIRCLE",
+  ellipse = "ELLIPSE",
   polygon = "POLYGON",
 }

@@ -1,2 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export type drawableInfoType = any;
+import { ToolEnum } from "./const";
+
+export type drawableInfoType = {
+  type: ToolEnum;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  points: number[];
+  color: string;
+};
