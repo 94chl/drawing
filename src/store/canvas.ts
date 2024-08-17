@@ -29,7 +29,7 @@ const canvas = createSlice({
       state.toolType = payload;
     },
     setColor: (state, { payload }) => {
-      state.color = payload.value;
+      state.color = payload;
     },
     setDrawables: (state, { payload }) => {
       state.drawables = payload;
