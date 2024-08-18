@@ -42,7 +42,7 @@ const Tools = () => {
   );
   const [, setStoredLayersNow] = useLocalStorage("storedLayersNow", -1);
 
-  const onChangeToolType = (e: React.MouseEvent, value: ToolEnum) => {
+  const onChangeToolType = (_: React.MouseEvent, value: ToolEnum) => {
     dispatch(setToolType(value));
   };
 

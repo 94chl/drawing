@@ -2,6 +2,7 @@ import React from "react";
 import { Rect } from "react-konva";
 
 import { setCursorStyle } from "./utils";
+import useDragDrawablePosition from "@/hook/useDragDrawablePosition";
 
 type Props = {
   id: string;
@@ -22,6 +23,8 @@ const RectDrawable: React.FC<React.PropsWithChildren<Props>> = ({
   height,
   draggable,
 }) => {
+  const moveDrawablePosition = useDragDrawablePosition({ id });
+
   return (
     <Rect
       id={id}
@@ -34,10 +37,7 @@ const RectDrawable: React.FC<React.PropsWithChildren<Props>> = ({
       draggable={draggable}
       onMouseEnter={(e) => draggable && setCursorStyle(e, "grab")}
       onMouseLeave={(e) => setCursorStyle(e, "inherit")}
-      onDragEnd={(e) => {
-        const test = e.currentTarget.position();
-        console.log("TEST", test);
-      }}
+      onDragEnd={moveDrawablePosition}
     />
   );
 };
