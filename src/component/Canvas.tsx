@@ -11,7 +11,7 @@ import { ToolEnum } from "@/utils/const";
 
 import { setLayersHitory, setLayersNow, setDrawables } from "@/store/canvas";
 
-import { EllipseDrawable, RectDrawable, PolygonDrawable } from "./Drawable";
+import Drawable from "./Drawable/Drawable";
 
 const Root = styled("div")`
   height: 100vh;
@@ -108,7 +108,7 @@ const Canvas = () => {
       ...drawable,
       points: drawablePoints.slice(0, drawablePoints.length - 2),
     };
-    console.log("NEW", newDrawable);
+
     if (
       (newDrawable.type === ToolEnum.ellipse ||
         newDrawable.type === ToolEnum.rect) &&
@@ -221,44 +221,6 @@ const Canvas = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const Drawable = ({ drawableInfo }: { drawableInfo: drawableInfoType }) => {
-    const {
-      type,
-      color: drawableColor,
-      x,
-      y,
-      width,
-      height,
-      points,
-    } = drawableInfo;
-    switch (type) {
-      case ToolEnum.ellipse:
-        return (
-          <EllipseDrawable
-            color={drawableColor}
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-          />
-        );
-      case ToolEnum.rect:
-        return (
-          <RectDrawable
-            color={drawableColor}
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-          />
-        );
-      case ToolEnum.polygon:
-        return <PolygonDrawable color={drawableColor} points={points} />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <Root
