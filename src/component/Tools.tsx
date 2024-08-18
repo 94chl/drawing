@@ -13,7 +13,12 @@ import useLocalStorage from "@/hook/useLocalStorage";
 import { ToolEnum } from "@/utils/const";
 import type { drawableInfoType } from "@/utils/type";
 
-import { ToggleButtonGroup, ToggleButton, Button } from "@mui/material";
+import {
+  ToggleButtonGroup,
+  ToggleButton,
+  Button,
+  TextField,
+} from "@mui/material";
 
 const TOOL_TYPES = Object.values(ToolEnum);
 
@@ -29,21 +34,19 @@ const Tools = () => {
     layersHistoryLimit,
   } = useSelector((store: RootState) => store.canvas, shallowEqual);
 
-  const [storedLayersHistory, setStoredLayersHistory] = useLocalStorage<
-    drawableInfoType[][]
-  >("storedLayersHistory", []);
-  const [storedLayersNow, setStoredLayersNow] = useLocalStorage(
-    "storedLayersNow",
-    -1
+  const [, setStoredLayersHistory] = useLocalStorage<drawableInfoType[][]>(
+    "storedLayersHistory",
+    []
   );
+  const [, setStoredLayersNow] = useLocalStorage("storedLayersNow", -1);
 
   const onChangeToolType = (e: React.MouseEvent, value: ToolEnum) => {
     dispatch(setToolType(value));
   };
 
-  // const onChangeColor = (e) => {
-  //   dispatch(setColor(e.target.value));
-  // };
+  const onChangeColor = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setColor(e.target.value));
+  };
 
   const undo = () => {
     const prevIndex =
@@ -119,19 +122,19 @@ const Tools = () => {
           ))}
         </ToggleButtonGroup>
       </div>
-      {/* <div>
-        <h3>Drawing Option</h3>
+      <div>
+        <h3>Drawing Color</h3>
         <div>
-          <CustomInput
-            inputId="fillColor"
-            onChange={(e) => onChangeColor(e, 'fillColor')}
-            value={fillColor}
-            inputOption={{ type: 'color' }}
+          <TextField
+            onChange={onChangeColor}
+            value={color}
+            InputProps={{ type: "color" }}
+            sx={{ width: 48, padding: 0 }}
           >
             채우기 색상
-          </CustomInput>
+          </TextField>
         </div>
-      </div> */}
+      </div>
       <div>
         <h3>History</h3>
         <div>
