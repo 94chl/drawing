@@ -18,9 +18,14 @@ import {
   ToggleButton,
   Button,
   TextField,
+  styled,
 } from "@mui/material";
 
 const TOOL_TYPES = Object.values(ToolEnum);
+
+const Root = styled("div")`
+  padding: 16px;
+`;
 
 const Tools = () => {
   const dispatch = useDispatch();
@@ -103,7 +108,7 @@ const Tools = () => {
   };
 
   return (
-    <div>
+    <Root>
       <div>
         <h3>Drawing Tool</h3>
         <ToggleButtonGroup
@@ -153,7 +158,7 @@ const Tools = () => {
           <Button onClick={resetLayers}>reset</Button>
         </div>
       </div>
-    </div>
+    </Root>
   );
 };
 
