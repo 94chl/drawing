@@ -91,11 +91,11 @@ const Tools = () => {
 
   const resetLayers = () => {
     if (window.confirm("Are you sure to reset history?")) {
+      setStoredLayersHistory([]);
+      setStoredLayersNow(-1);
       dispatch(setDrawables([]));
       dispatch(setLayersHitory([]));
-      setStoredLayersHistory([]);
       dispatch(setLayersNow(-1));
-      setStoredLayersNow(-1);
     }
   };
 

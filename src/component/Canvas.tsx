@@ -219,7 +219,8 @@ const Canvas = () => {
         )
       );
     }
-  }, [dispatch, layersHistory, storedLayersHistory, storedLayersNow]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const Drawable = ({ drawableInfo }: { drawableInfo: drawableInfoType }) => {
     const {
