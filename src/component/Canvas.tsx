@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { css } from "@emotion/react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { Stage as StageType } from "konva/lib/Stage";
 import { Stage, Layer } from "react-konva";
 import { RootState } from "@/store";
-import { styled } from "@mui/material";
 
 import useLocalStorage from "@/hook/useLocalStorage";
 import type { drawableInfoType, drawablePointsType } from "@/utils/type";
@@ -12,11 +12,6 @@ import { ToolEnum } from "@/utils/const";
 import { setLayersHitory, setLayersNow, setDrawables } from "@/store/canvas";
 
 import Drawable from "./Drawable/Drawable";
-
-const Root = styled("div")`
-  height: 100vh;
-  width: 80vw;
-`;
 
 const Canvas = () => {
   const dispatch = useDispatch();
@@ -47,6 +42,11 @@ const Canvas = () => {
   const canvasRef = useRef<null | HTMLDivElement>(null);
   const stageRef = useRef<null | StageType>(null);
   const isDrawing = useRef(false);
+  const isDrawableTool = [
+    ToolEnum.ellipse,
+    ToolEnum.rect,
+    ToolEnum.polygon,
+  ].includes(toolType);
 
   const [storedLayersHistory, setStoredLayersHistory] = useLocalStorage<
     drawableInfoType[][]
@@ -223,7 +223,12 @@ const Canvas = () => {
   }, []);
 
   return (
-    <Root
+    <div
+      css={css`
+        height: 100vh;
+        width: 80vw;
+        cursor: ${isDrawableTool ? "crosshair" : "default"};
+      `}
       ref={canvasRef}
       onMouseMove={drawingDrawable}
       onMouseDown={startDrawDrawable}
@@ -244,7 +249,7 @@ const Canvas = () => {
           {drawablePoints.length > 0 && <Drawable drawableInfo={drawable} />}
         </Layer>
       </Stage>
-    </Root>
+    </div>
   );
 };
 

@@ -1,18 +1,20 @@
+import { css } from "@emotion/react";
+
 import Canvas from "@/component/Canvas";
 import Tools from "@/component/Tools";
-import { styled, Divider } from "@mui/material";
-
-const Root = styled("div")`
-  display: flex;
-`;
+import { Divider } from "@mui/material";
 
 const DrawingTool = () => {
   return (
-    <Root>
+    <div
+      css={css`
+        display: flex;
+      `}
+    >
       <Canvas />
       <Divider orientation="vertical" flexItem />
       <Tools />
-    </Root>
+    </div>
   );
 };
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { css } from "@emotion/react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { RootState } from "@/store";
 import {
@@ -18,14 +19,9 @@ import {
   ToggleButton,
   Button,
   TextField,
-  styled,
 } from "@mui/material";
 
 const TOOL_TYPES = Object.values(ToolEnum);
-
-const Root = styled("div")`
-  padding: 16px;
-`;
 
 const Tools = () => {
   const dispatch = useDispatch();
@@ -108,7 +104,11 @@ const Tools = () => {
   };
 
   return (
-    <Root>
+    <div
+      css={css`
+        padding: 16px;
+      `}
+    >
       <div>
         <h3>Drawing Tool</h3>
         <ToggleButtonGroup
@@ -134,10 +134,10 @@ const Tools = () => {
             onChange={onChangeColor}
             value={color}
             InputProps={{ type: "color" }}
-            sx={{ width: 48, padding: 0 }}
-          >
-            채우기 색상
-          </TextField>
+            css={css`
+              width: 48px;
+            `}
+          />
         </div>
       </div>
       <div>
@@ -158,7 +158,7 @@ const Tools = () => {
           <Button onClick={resetLayers}>reset</Button>
         </div>
       </div>
-    </Root>
+    </div>
   );
 };
 
