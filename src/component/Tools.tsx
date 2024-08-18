@@ -5,14 +5,15 @@ import { RootState } from "@/store";
 import {
   setLayersHitory,
   setLayersNow,
-  setDrawables,
+  setDrawablesHistory,
   setColor,
   setToolType,
 } from "@/store/canvas";
 
 import useLocalStorage from "@/hook/useLocalStorage";
 import { ToolEnum } from "@/utils/const";
-import type { drawableInfoType } from "@/utils/type";
+import type { drawableInfoBufferType } from "@/utils/type";
+import { isEmpty } from "underscore";
 
 import {
   ToggleButtonGroup,
@@ -35,7 +36,7 @@ const Tools = () => {
     layersHistoryLimit,
   } = useSelector((store: RootState) => store.canvas, shallowEqual);
 
-  const [, setStoredLayersHistory] = useLocalStorage<drawableInfoType[][]>(
+  const [, setStoredLayersHistory] = useLocalStorage<drawableInfoBufferType[]>(
     "storedLayersHistory",
     []
   );
@@ -59,7 +60,9 @@ const Tools = () => {
 
     setStoredLayersNow(prevIndex);
     dispatch(setLayersNow(prevIndex));
-    dispatch(setDrawables(prevIndex > -1 ? layersHistory[prevIndex] : []));
+    dispatch(
+      setDrawablesHistory(prevIndex > -1 ? layersHistory[prevIndex] : {})
+    );
   };
 
   const redo = () => {
@@ -70,18 +73,20 @@ const Tools = () => {
 
     setStoredLayersNow(nextIndex);
     dispatch(setLayersNow(nextIndex));
-    dispatch(setDrawables(nextIndex > -1 ? layersHistory[nextIndex] : []));
+    dispatch(
+      setDrawablesHistory(nextIndex > -1 ? layersHistory[nextIndex] : {})
+    );
   };
 
   const clearDrawables = () => {
-    if (drawables.length < 1) return;
+    if (isEmpty(drawables)) return;
 
     const newLayersHistory = layersHistory.filter(
       (_, index) => index <= layersNow
     );
-    newLayersHistory.push([]);
+    newLayersHistory.push({});
 
-    dispatch(setDrawables([]));
+    dispatch(setDrawablesHistory({}));
     dispatch(setLayersHitory(newLayersHistory));
     setStoredLayersHistory(newLayersHistory);
 
@@ -97,7 +102,7 @@ const Tools = () => {
     if (window.confirm("Are you sure to reset history?")) {
       setStoredLayersHistory([]);
       setStoredLayersNow(-1);
-      dispatch(setDrawables([]));
+      dispatch(setDrawablesHistory({}));
       dispatch(setLayersHitory([]));
       dispatch(setLayersNow(-1));
     }
@@ -152,7 +157,7 @@ const Tools = () => {
           >
             redo
           </Button>
-          <Button onClick={clearDrawables} disabled={drawables.length < 1}>
+          <Button onClick={clearDrawables} disabled={isEmpty(drawables)}>
             clear
           </Button>
           <Button onClick={resetLayers}>reset</Button>

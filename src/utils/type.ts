@@ -12,3 +12,5 @@ export type drawableInfoType = {
   points: drawablePointsType;
   color: string;
 };
+
+export type drawableInfoBufferType = Record<string, drawableInfoType>;

@@ -7,10 +7,19 @@ import { RootState } from "@/store";
 import genUid from "light-uid";
 
 import useLocalStorage from "@/hook/useLocalStorage";
-import type { drawableInfoType, drawablePointsType } from "@/utils/type";
+import type {
+  drawableInfoType,
+  drawablePointsType,
+  drawableInfoBufferType,
+} from "@/utils/type";
 import { ToolEnum } from "@/utils/const";
 
-import { setLayersHitory, setLayersNow, setDrawables } from "@/store/canvas";
+import {
+  setLayersHitory,
+  setLayersNow,
+  setDrawables,
+  setDrawablesHistory,
+} from "@/store/canvas";
 
 import Drawable from "./Drawable/Drawable";
 
@@ -51,7 +60,7 @@ const Canvas = () => {
   ].includes(toolType);
 
   const [storedLayersHistory, setStoredLayersHistory] = useLocalStorage<
-    drawableInfoType[][]
+    drawableInfoBufferType[]
   >("storedLayersHistory", []);
   const [storedLayersNow, setStoredLayersNow] = useLocalStorage(
     "storedLayersNow",
@@ -97,7 +106,7 @@ const Canvas = () => {
       return;
     }
 
-    const newDrawables = [...drawables];
+    const newDrawables = structuredClone(drawables);
     const newLayersHistory =
       layersNow < layersHistoryLimit - 1
         ? layersHistory.filter((_, index) => index <= layersNow)
@@ -121,9 +130,9 @@ const Canvas = () => {
       initializeDrawable();
       return;
     }
-    newDrawables.push(newDrawable);
+    newDrawables[newDrawable.id] = newDrawable;
 
-    dispatch(setDrawables(newDrawables));
+    dispatch(setDrawables(newDrawable));
 
     newLayersHistory.push(newDrawables);
     setStoredLayersHistory(newLayersHistory);
@@ -217,9 +226,9 @@ const Canvas = () => {
       dispatch(setLayersHitory(storedLayersHistory));
       dispatch(setLayersNow(storedLayersNow));
       dispatch(
-        setDrawables(
+        setDrawablesHistory(
           !storedLayersHistory[storedLayersNow]
-            ? []
+            ? {}
             : storedLayersHistory[storedLayersNow]
         )
       );
@@ -246,12 +255,20 @@ const Canvas = () => {
         height={canvasContainer.height}
       >
         <Layer>
-          {drawables.map((drawableInfo, index) => {
+          {Object.values(drawables).map((drawableInfo, index) => {
             const key = `${drawableInfo.type}_${index}`;
-            return <Drawable drawableInfo={drawableInfo} key={key} />;
+            return (
+              <Drawable
+                drawableInfo={drawableInfo}
+                toolType={toolType}
+                key={key}
+              />
+            );
           })}
 
-          {drawablePoints.length > 0 && <Drawable drawableInfo={drawable} />}
+          {drawablePoints.length > 0 && (
+            <Drawable drawableInfo={drawable} toolType={toolType} />
+          )}
         </Layer>
       </Stage>
     </div>

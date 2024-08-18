@@ -1,13 +1,13 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { ToolEnum } from "@/utils/const";
-import type { drawableInfoType } from "@/utils/type";
+import type { drawableInfoType, drawableInfoBufferType } from "@/utils/type";
 
 type CanvasStateType = {
   toolType: ToolEnum;
   color: string;
-  drawables: drawableInfoType[];
-  layersHistory: drawableInfoType[][];
+  drawables: drawableInfoBufferType;
+  layersHistory: drawableInfoBufferType[];
   layersNow: number;
   layersHistoryLimit: number;
 };
@@ -15,7 +15,7 @@ type CanvasStateType = {
 const initialState: CanvasStateType = {
   toolType: ToolEnum.rect,
   color: "#000000",
-  drawables: [],
+  drawables: {},
   layersHistory: [],
   layersNow: -1,
   layersHistoryLimit: 40,
@@ -25,19 +25,28 @@ const canvas = createSlice({
   name: "canvas",
   initialState,
   reducers: {
-    setToolType: (state, { payload }) => {
+    setToolType: (state, { payload }: PayloadAction<ToolEnum>) => {
       state.toolType = payload;
     },
-    setColor: (state, { payload }) => {
+    setColor: (state, { payload }: PayloadAction<string>) => {
       state.color = payload;
     },
-    setDrawables: (state, { payload }) => {
+    setDrawables: (state, { payload }: PayloadAction<drawableInfoType>) => {
+      state.drawables[payload.id] = payload;
+    },
+    setDrawablesHistory: (
+      state,
+      { payload }: PayloadAction<drawableInfoBufferType>
+    ) => {
       state.drawables = payload;
     },
-    setLayersHitory: (state, { payload }) => {
+    setLayersHitory: (
+      state,
+      { payload }: PayloadAction<drawableInfoBufferType[]>
+    ) => {
       state.layersHistory = payload;
     },
-    setLayersNow: (state, { payload }) => {
+    setLayersNow: (state, { payload }: PayloadAction<number>) => {
       state.layersNow = payload;
     },
   },
@@ -47,6 +56,7 @@ export const {
   setToolType,
   setColor,
   setDrawables,
+  setDrawablesHistory,
   setLayersHitory,
   setLayersNow,
 } = canvas.actions;
