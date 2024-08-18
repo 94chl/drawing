@@ -4,6 +4,7 @@ import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { Stage as StageType } from "konva/lib/Stage";
 import { Stage, Layer } from "react-konva";
 import { RootState } from "@/store";
+import genUid from "light-uid";
 
 import useLocalStorage from "@/hook/useLocalStorage";
 import type { drawableInfoType, drawablePointsType } from "@/utils/type";
@@ -30,6 +31,7 @@ const Canvas = () => {
   });
   const [drawablePoints, setDrawablePoints] = useState<drawablePointsType>([]);
   const [drawable, setDrawable] = useState<drawableInfoType>({
+    id: "",
     type: toolType,
     x: 0,
     y: 0,
@@ -58,6 +60,7 @@ const Canvas = () => {
 
   const initializeDrawable = () => {
     setDrawable({
+      id: "",
       type: toolType,
       x: 0,
       y: 0,
@@ -107,6 +110,7 @@ const Canvas = () => {
     const newDrawable = {
       ...drawable,
       points: drawablePoints.slice(0, drawablePoints.length - 2),
+      id: genUid(8),
     };
 
     if (
@@ -148,6 +152,7 @@ const Canvas = () => {
     const y = height < 0 ? drawablePoints[0][1] : e.clientY;
 
     const newDrawable = {
+      id: drawable.id,
       type: toolType,
       x,
       y,
