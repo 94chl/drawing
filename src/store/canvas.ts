@@ -31,10 +31,10 @@ const canvas = createSlice({
     setColor: (state, { payload }: PayloadAction<string>) => {
       state.color = payload;
     },
-    setDrawables: (state, { payload }: PayloadAction<drawableInfoType>) => {
+    setDrawable: (state, { payload }: PayloadAction<drawableInfoType>) => {
       state.drawables[payload.id] = payload;
     },
-    setDrawablesHistory: (
+    setDrawables: (
       state,
       { payload }: PayloadAction<drawableInfoBufferType>
     ) => {
@@ -55,8 +55,8 @@ const canvas = createSlice({
 export const {
   setToolType,
   setColor,
+  setDrawable,
   setDrawables,
-  setDrawablesHistory,
   setLayersHitory,
   setLayersNow,
 } = canvas.actions;

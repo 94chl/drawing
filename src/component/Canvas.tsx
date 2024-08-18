@@ -5,6 +5,7 @@ import type { Stage as StageType } from "konva/lib/Stage";
 import { Stage, Layer } from "react-konva";
 import { RootState } from "@/store";
 import genUid from "light-uid";
+import _ from "underscore";
 
 import useLocalStorage from "@/hook/useLocalStorage";
 import type {
@@ -12,13 +13,13 @@ import type {
   drawablePointsType,
   drawableInfoBufferType,
 } from "@/utils/type";
-import { ToolEnum } from "@/utils/const";
+import { ToolEnum, LocalStorageKey } from "@/utils/const";
 
 import {
   setLayersHitory,
   setLayersNow,
+  setDrawable,
   setDrawables,
-  setDrawablesHistory,
 } from "@/store/canvas";
 
 import Drawable from "./Drawable/Drawable";
@@ -39,7 +40,7 @@ const Canvas = () => {
     height: 0,
   });
   const [drawablePoints, setDrawablePoints] = useState<drawablePointsType>([]);
-  const [drawable, setDrawable] = useState<drawableInfoType>({
+  const [tempDrawable, setTempDrawable] = useState<drawableInfoType>({
     id: "",
     type: toolType,
     x: 0,
@@ -59,16 +60,11 @@ const Canvas = () => {
     ToolEnum.polygon,
   ].includes(toolType);
 
-  const [storedLayersHistory, setStoredLayersHistory] = useLocalStorage<
-    drawableInfoBufferType[]
-  >("storedLayersHistory", []);
-  const [storedLayersNow, setStoredLayersNow] = useLocalStorage(
-    "storedLayersNow",
-    -1
-  );
+  const [storedDrawables, setStoredDrawables] =
+    useLocalStorage<drawableInfoBufferType>(LocalStorageKey.drawables, {});
 
   const initializeDrawable = () => {
-    setDrawable({
+    setTempDrawable({
       id: "",
       type: toolType,
       x: 0,
@@ -117,7 +113,7 @@ const Canvas = () => {
           );
 
     const newDrawable = {
-      ...drawable,
+      ...tempDrawable,
       points: drawablePoints.slice(0, drawablePoints.length - 2),
       id: genUid(8),
     };
@@ -132,17 +128,16 @@ const Canvas = () => {
     }
     newDrawables[newDrawable.id] = newDrawable;
 
-    dispatch(setDrawables(newDrawable));
+    dispatch(setDrawable(newDrawable));
+    setStoredDrawables(newDrawables);
 
     newLayersHistory.push(newDrawables);
-    setStoredLayersHistory(newLayersHistory);
     dispatch(setLayersHitory(newLayersHistory));
 
     const nextIndex =
       layersNow + 1 < layersHistoryLimit - 1
         ? layersNow + 1
         : layersHistoryLimit - 1;
-    setStoredLayersNow(nextIndex);
     dispatch(setLayersNow(nextIndex));
 
     initializeDrawable();
@@ -161,7 +156,7 @@ const Canvas = () => {
     const y = height < 0 ? drawablePoints[0][1] : e.clientY;
 
     const newDrawable = {
-      id: drawable.id,
+      id: tempDrawable.id,
       type: toolType,
       x,
       y,
@@ -178,7 +173,7 @@ const Canvas = () => {
     setDrawablePoints(newDrawablePoints);
     newDrawable.points = newDrawablePoints;
 
-    setDrawable(newDrawable);
+    setTempDrawable(newDrawable);
   };
 
   const startDrawDrawable: React.MouseEventHandler<HTMLDivElement> = (e) => {
@@ -217,21 +212,10 @@ const Canvas = () => {
   }, []);
 
   useEffect(() => {
-    if (!storedLayersHistory[storedLayersNow])
-      setStoredLayersNow(storedLayersHistory.length - 1);
-  }, [setStoredLayersNow, storedLayersHistory, storedLayersNow]);
-
-  useEffect(() => {
-    if (!layersHistory.length && storedLayersHistory.length) {
-      dispatch(setLayersHitory(storedLayersHistory));
-      dispatch(setLayersNow(storedLayersNow));
-      dispatch(
-        setDrawablesHistory(
-          !storedLayersHistory[storedLayersNow]
-            ? {}
-            : storedLayersHistory[storedLayersNow]
-        )
-      );
+    if (_.isEmpty(layersHistory) && !_.isEmpty(storedDrawables)) {
+      dispatch(setDrawables(storedDrawables));
+      dispatch(setLayersHitory([storedDrawables]));
+      dispatch(setLayersNow(0));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -266,8 +250,8 @@ const Canvas = () => {
             );
           })}
 
-          {drawablePoints.length > 0 && (
-            <Drawable drawableInfo={drawable} toolType={toolType} />
+          {!_.isEmpty(drawablePoints) && (
+            <Drawable drawableInfo={tempDrawable} toolType={toolType} />
           )}
         </Layer>
       </Stage>

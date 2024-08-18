@@ -4,3 +4,7 @@ export enum ToolEnum {
   ellipse = "ELLIPSE",
   polygon = "POLYGON",
 }
+
+export enum LocalStorageKey {
+  drawables = "STORED_DRAWABLES",
+}

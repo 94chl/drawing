@@ -5,13 +5,13 @@ import { RootState } from "@/store";
 import {
   setLayersHitory,
   setLayersNow,
-  setDrawablesHistory,
+  setDrawables,
   setColor,
   setToolType,
 } from "@/store/canvas";
 
 import useLocalStorage from "@/hook/useLocalStorage";
-import { ToolEnum } from "@/utils/const";
+import { ToolEnum, LocalStorageKey } from "@/utils/const";
 import type { drawableInfoBufferType } from "@/utils/type";
 import { isEmpty } from "underscore";
 
@@ -36,11 +36,10 @@ const Tools = () => {
     layersHistoryLimit,
   } = useSelector((store: RootState) => store.canvas, shallowEqual);
 
-  const [, setStoredLayersHistory] = useLocalStorage<drawableInfoBufferType[]>(
-    "storedLayersHistory",
-    []
+  const [, setStoredDrawables] = useLocalStorage<drawableInfoBufferType>(
+    LocalStorageKey.drawables,
+    {}
   );
-  const [, setStoredLayersNow] = useLocalStorage("storedLayersNow", -1);
 
   const onChangeToolType = (_: React.MouseEvent, value: ToolEnum) => {
     dispatch(setToolType(value));
@@ -52,17 +51,14 @@ const Tools = () => {
 
   const undo = () => {
     const prevIndex =
-      layersNow >= 0
+      layersNow > -1
         ? layersNow > layersHistory.length - 1
           ? layersHistory.length - 1
           : layersNow - 1
         : -1;
 
-    setStoredLayersNow(prevIndex);
     dispatch(setLayersNow(prevIndex));
-    dispatch(
-      setDrawablesHistory(prevIndex > -1 ? layersHistory[prevIndex] : {})
-    );
+    dispatch(setDrawables(prevIndex > -1 ? layersHistory[prevIndex] : {}));
   };
 
   const redo = () => {
@@ -71,11 +67,8 @@ const Tools = () => {
         ? layersNow + 1
         : layersHistory.length - 1;
 
-    setStoredLayersNow(nextIndex);
     dispatch(setLayersNow(nextIndex));
-    dispatch(
-      setDrawablesHistory(nextIndex > -1 ? layersHistory[nextIndex] : {})
-    );
+    dispatch(setDrawables(nextIndex > -1 ? layersHistory[nextIndex] : {}));
   };
 
   const clearDrawables = () => {
@@ -86,23 +79,21 @@ const Tools = () => {
     );
     newLayersHistory.push({});
 
-    dispatch(setDrawablesHistory({}));
+    dispatch(setDrawables({}));
     dispatch(setLayersHitory(newLayersHistory));
-    setStoredLayersHistory(newLayersHistory);
+    setStoredDrawables({});
 
     const nextIndex =
       layersNow + 1 < layersHistoryLimit - 1
         ? layersNow + 1
         : layersHistoryLimit - 1;
     dispatch(setLayersNow(nextIndex));
-    setStoredLayersNow(nextIndex);
   };
 
   const resetLayers = () => {
     if (window.confirm("Are you sure to reset history?")) {
-      setStoredLayersHistory([]);
-      setStoredLayersNow(-1);
-      dispatch(setDrawablesHistory({}));
+      setStoredDrawables({});
+      dispatch(setDrawables({}));
       dispatch(setLayersHitory([]));
       dispatch(setLayersNow(-1));
     }
