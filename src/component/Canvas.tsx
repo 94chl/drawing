@@ -13,7 +13,7 @@ import type {
   drawablePointsType,
   drawableInfoBufferType,
 } from "@/utils/type";
-import { ToolEnum, LocalStorageKey } from "@/utils/const";
+import { ToolEnum, STANDARD_DRAWABLES, LocalStorageKey } from "@/utils/const";
 
 import {
   setLayersHitory,
@@ -102,7 +102,24 @@ const Canvas = () => {
       return;
     }
 
+    const newDrawable = {
+      ...tempDrawable,
+      points: drawablePoints.slice(0, drawablePoints.length - 2),
+      id: genUid(8),
+    };
+    if (
+      STANDARD_DRAWABLES.includes(newDrawable.type) &&
+      (newDrawable.width < 1 || newDrawable.height < 1)
+    ) {
+      initializeDrawable();
+      return;
+    }
+    dispatch(setDrawable(newDrawable));
+
     const newDrawables = structuredClone(drawables);
+    newDrawables[newDrawable.id] = newDrawable;
+    setStoredDrawables(newDrawables);
+
     const newLayersHistory =
       layersNow < layersHistoryLimit - 1
         ? layersHistory.filter((_, index) => index <= layersNow)
@@ -111,42 +128,21 @@ const Canvas = () => {
               layersHistory.length - layersHistoryLimit + 1 <= index &&
               index < layersHistoryLimit
           );
-
-    const newDrawable = {
-      ...tempDrawable,
-      points: drawablePoints.slice(0, drawablePoints.length - 2),
-      id: genUid(8),
-    };
-
-    if (
-      (newDrawable.type === ToolEnum.ellipse ||
-        newDrawable.type === ToolEnum.rect) &&
-      (newDrawable.width < 1 || newDrawable.height < 1)
-    ) {
-      initializeDrawable();
-      return;
-    }
-    newDrawables[newDrawable.id] = newDrawable;
-
-    dispatch(setDrawable(newDrawable));
-    setStoredDrawables(newDrawables);
-
     newLayersHistory.push(newDrawables);
-    dispatch(setLayersHitory(newLayersHistory));
 
     const nextIndex =
       layersNow + 1 < layersHistoryLimit - 1
         ? layersNow + 1
         : layersHistoryLimit - 1;
+
+    dispatch(setLayersHitory(newLayersHistory));
     dispatch(setLayersNow(nextIndex));
 
     initializeDrawable();
   };
 
   const drawingDrawable: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    if (!isDrawing.current) {
-      return;
-    }
+    if (!isDrawing.current) return;
 
     const width =
       drawablePoints.length > 1 ? drawablePoints[0][0] - e.clientX : 0;

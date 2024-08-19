@@ -1,10 +1,11 @@
 import { RootState } from "@/store";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { setDrawables, setLayersNow } from "@/store/canvas";
+import { setDrawable, setLayersHitory, setLayersNow } from "@/store/canvas";
 import { KonvaEventObject } from "konva/lib/Node";
 
 import useLocalStorage from "./useLocalStorage";
 import type { drawableInfoBufferType } from "@/utils/type";
+import { LocalStorageKey } from "@/utils/const";
 
 type Props = {
   id: string;
@@ -14,11 +15,11 @@ const useDragDrawablePosition = ({ id }: Props) => {
   const dispatch = useDispatch();
   const { drawables, layersNow, layersHistoryLimit, layersHistory } =
     useSelector((store: RootState) => store.canvas, shallowEqual);
-  const [, setStoredLayersHistory] = useLocalStorage<drawableInfoBufferType[]>(
-    "storedLayersHistory",
-    []
+
+  const [, setStoredDrawables] = useLocalStorage<drawableInfoBufferType>(
+    LocalStorageKey.drawables,
+    {}
   );
-  const [, setStoredLayersNow] = useLocalStorage("storedLayersNow", -1);
 
   const moveDrawablePosition = (e: KonvaEventObject<DragEvent>) => {
     const { x, y } = e.currentTarget.position();
@@ -32,7 +33,11 @@ const useDragDrawablePosition = ({ id }: Props) => {
       const newDrawable = structuredClone(targetDrawable);
       newDrawable.x = x;
       newDrawable.y = y;
-      dispatch(setDrawables(newDrawable));
+      dispatch(setDrawable(newDrawable));
+
+      const newDrawables = structuredClone(drawables);
+      newDrawables[newDrawable.id] = newDrawable;
+      setStoredDrawables(newDrawables);
 
       const newLayersHistory =
         layersNow < layersHistoryLimit - 1
@@ -42,14 +47,13 @@ const useDragDrawablePosition = ({ id }: Props) => {
                 layersHistory.length - layersHistoryLimit + 1 <= index &&
                 index < layersHistoryLimit
             );
-
       const nextIndex =
         layersNow + 1 < layersHistoryLimit - 1
           ? layersNow + 1
           : layersHistoryLimit - 1;
-      setStoredLayersNow(nextIndex);
+
+      dispatch(setLayersHitory(newLayersHistory));
       dispatch(setLayersNow(nextIndex));
-      setStoredLayersHistory(newLayersHistory);
     }
   };
 
