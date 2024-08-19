@@ -126,11 +126,10 @@ const Canvas = () => {
         return;
       }
 
-      const firstPoint = newDrawablePoints[0];
-      const lastPoint = newDrawablePoints[newDrawablePoints.length - 1];
+      const startPoint = newDrawablePoints[0];
+      const endPoint = newDrawablePoints[newDrawablePoints.length - 1];
       const distance = Math.sqrt(
-        (firstPoint[0] - lastPoint[0]) ** 2 +
-          (firstPoint[1] - lastPoint[1]) ** 2
+        (startPoint[0] - endPoint[0]) ** 2 + (startPoint[1] - endPoint[1]) ** 2
       );
 
       if (distance > 10) {

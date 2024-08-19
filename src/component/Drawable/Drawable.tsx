@@ -54,10 +54,10 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
       const startPoint = points[0];
       const endPoint =
         points.length > 1 ? points[points.length - 1] : startPoint;
-      const isClosed =
-        points.length > 1 &&
-        startPoint[0] === endPoint[0] &&
-        startPoint[1] === endPoint[1];
+      const distance = Math.sqrt(
+        (startPoint[0] - endPoint[0]) ** 2 + (startPoint[1] - endPoint[1]) ** 2
+      );
+      const isClosed = points.length > 1 && distance <= 4;
       return (
         <PolygonDrawable
           id={id}
