@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { css } from "@emotion/react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { Stage as StageType } from "konva/lib/Stage";
@@ -62,11 +62,12 @@ const Canvas = () => {
     ToolEnum.polygon,
   ].includes(toolType);
   const isStandardDrawableType = STANDARD_DRAWABLES.includes(toolType);
+  const isPolygon = toolType === ToolEnum.polygon;
 
   const [storedDrawables, setStoredDrawables] =
     useLocalStorage<drawableInfoBufferType>(LocalStorageKey.drawables, {});
 
-  const initializeDrawable = () => {
+  const initializeDrawable = useCallback(() => {
     setTempDrawable({
       id: "",
       type: toolType,
@@ -79,7 +80,7 @@ const Canvas = () => {
     });
     setDrawablePoints([]);
     isDrawing.current = false;
-  };
+  }, [color, toolType]);
 
   const selectDrawable = () => {
     if (stageRef?.current) {
@@ -110,8 +111,6 @@ const Canvas = () => {
       ...tempDrawable,
       id: genUid(8),
     };
-
-    const isPolygon = toolType === ToolEnum.polygon;
 
     if (isPolygon) {
       const newDrawablePoints = structuredClone(drawablePoints);
@@ -181,6 +180,7 @@ const Canvas = () => {
 
   const drawDrawable = (e: KonvaEventObject<MouseEvent>) => {
     if (!isDrawing.current) return;
+    if (isPolygon && _.isEmpty(drawablePoints)) return;
 
     const x = e.evt.clientX;
     const y = e.evt.clientY;
@@ -228,6 +228,23 @@ const Canvas = () => {
       if (isStandardDrawableType) setDrawablePoints([[x, y]]);
     }
   };
+
+  const onKeyDownHandler = useCallback(
+    (e: KeyboardEvent) => {
+      const key = e.key;
+      if (isDrawing.current && key === "Escape") {
+        initializeDrawable();
+      }
+    },
+    [initializeDrawable]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDownHandler);
+    return () => {
+      document.removeEventListener("keydown", onKeyDownHandler);
+    };
+  }, [onKeyDownHandler]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -278,7 +295,6 @@ const Canvas = () => {
         cursor: ${isDrawableTool ? "crosshair" : "default"};
       `}
       ref={canvasRef}
-      onKeyDown={(e) => e.key === "Escape" && initializeDrawable()}
     >
       <Stage
         ref={stageRef}
