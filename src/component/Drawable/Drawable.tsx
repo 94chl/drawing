@@ -62,7 +62,7 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
         <PolygonDrawable
           id={id}
           color={color}
-          points={points}
+          points={points.flat()}
           closed={isClosed}
           draggable={isSelectTool}
           isSelected={isSelected}

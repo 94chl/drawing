@@ -3,14 +3,13 @@ import { Line, Transformer } from "react-konva";
 import type { Line as LineType } from "konva/lib/shapes/Line";
 import type { Transformer as TransformerType } from "konva/lib/shapes/Transformer";
 
-import type { drawablePointsType } from "@/utils/type";
 import { setCursorStyle } from "./utils";
 import useDragDrawablePosition from "@/hook/useDragDrawablePosition";
 
 type Props = {
   id: string;
   color: string;
-  points: drawablePointsType;
+  points: number[];
   closed?: boolean;
   draggable: boolean;
   isSelected?: boolean;
@@ -40,7 +39,9 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
       <Line
         id={id}
         fill={color}
-        points={points.flat()}
+        points={points}
+        stroke={"#000"}
+        strokeWidth={3}
         opacity={0.3}
         closed={closed}
         draggable={isSelected}
