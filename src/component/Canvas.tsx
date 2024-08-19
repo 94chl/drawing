@@ -37,8 +37,8 @@ const Canvas = () => {
   } = useSelector((store: RootState) => store.canvas, shallowEqual);
 
   const [canvasContainer, setCanvasContainer] = useState({
-    width: 0,
-    height: 0,
+    width: 40,
+    height: 40,
   });
   const [drawablePoints, setDrawablePoints] = useState<drawablePointsType>([]);
   const [tempDrawable, setTempDrawable] = useState<drawableInfoType>({
@@ -61,6 +61,7 @@ const Canvas = () => {
     ToolEnum.rect,
     ToolEnum.polygon,
   ].includes(toolType);
+  const isStandardDrawableType = STANDARD_DRAWABLES.includes(toolType);
 
   const [storedDrawables, setStoredDrawables] =
     useLocalStorage<drawableInfoBufferType>(LocalStorageKey.drawables, {});
@@ -85,10 +86,12 @@ const Canvas = () => {
       const pointerPosition = stageRef.current?.getPointerPosition();
       if (pointerPosition) {
         const element = stageRef.current?.getIntersection(pointerPosition);
-
         if (element) {
-          selectedDrawableIds.current.clear();
-          selectedDrawableIds.current.add(element.getAttr("id"));
+          const targetId = element.getAttr("id");
+          if (!selectedDrawableIds.current.has(targetId) && targetId) {
+            selectedDrawableIds.current.clear();
+            selectedDrawableIds.current.add(targetId);
+          }
         } else {
           selectedDrawableIds.current.clear();
         }
@@ -105,11 +108,46 @@ const Canvas = () => {
 
     const newDrawable = {
       ...tempDrawable,
-      points: drawablePoints.slice(0, drawablePoints.length - 2),
       id: genUid(8),
     };
+
+    const isPolygon = toolType === ToolEnum.polygon;
+
+    if (isPolygon) {
+      const newDrawablePoints = structuredClone(drawablePoints);
+      newDrawablePoints.push(
+        tempDrawable.points[tempDrawable.points.length - 1]
+      );
+
+      if (drawablePoints.length < 3) {
+        newDrawable.points = newDrawablePoints;
+        setDrawablePoints(newDrawablePoints);
+        setTempDrawable(newDrawable);
+        return;
+      }
+
+      const firstPoint = newDrawablePoints[0];
+      const lastPoint = newDrawablePoints[newDrawablePoints.length - 1];
+      const distance = Math.sqrt(
+        (firstPoint[0] - lastPoint[0]) ** 2 +
+          (firstPoint[1] - lastPoint[1]) ** 2
+      );
+
+      if (distance > 10) {
+        newDrawable.points = newDrawablePoints;
+        setDrawablePoints(newDrawablePoints);
+        setTempDrawable(newDrawable);
+        return;
+      }
+
+      newDrawablePoints.pop();
+      newDrawablePoints.push(drawablePoints[0]);
+      newDrawable.points = newDrawablePoints;
+      setDrawablePoints(newDrawablePoints);
+    }
+
     if (
-      STANDARD_DRAWABLES.includes(newDrawable.type) &&
+      isStandardDrawableType &&
       (newDrawable.width < 1 || newDrawable.height < 1)
     ) {
       initializeDrawable();
@@ -142,31 +180,29 @@ const Canvas = () => {
     initializeDrawable();
   };
 
-  const drawingDrawable = (e: KonvaEventObject<MouseEvent>) => {
+  const drawDrawable = (e: KonvaEventObject<MouseEvent>) => {
     if (!isDrawing.current) return;
 
     const x = e.evt.clientX;
     const y = e.evt.clientY;
-    const width = drawablePoints.length > 1 ? drawablePoints[0][0] - x : 0;
-    const height = drawablePoints.length > 1 ? drawablePoints[0][1] - y : 0;
+    const width = drawablePoints[0][0] - x;
+    const height = drawablePoints[0][1] - y;
     const startPointX = width < 0 ? drawablePoints[0][0] : x;
     const startPointY = height < 0 ? drawablePoints[0][1] : y;
     const isEllipse = toolType === ToolEnum.ellipse;
+    const newX = isEllipse ? startPointX + Math.abs(width) / 2 : startPointX;
+    const newY = isEllipse ? startPointY + Math.abs(height) / 2 : startPointY;
 
-    const newDrawable = {
+    const newDrawable: drawableInfoType = {
       id: tempDrawable.id,
       type: toolType,
-      x: isEllipse ? startPointX + Math.abs(width) / 2 : startPointX,
-      y: isEllipse ? startPointY + Math.abs(height) / 2 : startPointY,
+      x: newX,
+      y: newY,
       width: Math.abs(width),
       height: Math.abs(height),
-      points: [...drawablePoints],
+      points: [...drawablePoints, [x, y]],
       color,
     };
-
-    const newDrawablePoints: drawablePointsType = [...drawablePoints, [x, y]];
-    setDrawablePoints(newDrawablePoints);
-    newDrawable.points = newDrawablePoints;
 
     setTempDrawable(newDrawable);
   };
@@ -177,11 +213,20 @@ const Canvas = () => {
       return;
     }
 
-    if (isDrawing.current === false) {
-      isDrawing.current = true;
-      drawingDrawable(e);
-    } else {
-      initializeDrawable();
+    isDrawing.current = true;
+
+    if (_.isEmpty(drawablePoints)) {
+      const x = e.evt.clientX;
+      const y = e.evt.clientY;
+      const newDrawable: drawableInfoType = {
+        ...tempDrawable,
+        type: toolType,
+        points: [[x, y]],
+        color,
+      };
+
+      setTempDrawable(newDrawable);
+      if (isStandardDrawableType) setDrawablePoints([[x, y]]);
     }
   };
 
@@ -240,7 +285,7 @@ const Canvas = () => {
         ref={stageRef}
         width={canvasContainer.width}
         height={canvasContainer.height}
-        onMouseMove={drawingDrawable}
+        onMouseMove={drawDrawable}
         onMouseDown={startDrawDrawable}
         onMouseUp={finishDrawingDrawable}
       >
@@ -257,7 +302,7 @@ const Canvas = () => {
             );
           })}
 
-          {!_.isEmpty(drawablePoints) && (
+          {!_.isEmpty(tempDrawable.points) && (
             <Drawable drawableInfo={tempDrawable} toolType={toolType} />
           )}
         </Layer>
