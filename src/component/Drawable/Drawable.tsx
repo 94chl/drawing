@@ -7,14 +7,22 @@ import EllipseDrawable from "./EllipseDrawable";
 import RectDrawable from "./RectDrawable";
 import PolygonDrawable from "./PolygonDrawable";
 
-type Props = { drawableInfo: drawableInfoType; toolType: ToolEnum };
+type Props = {
+  drawableInfo: drawableInfoType;
+  toolType: ToolEnum;
+  selectedDrawableIds?: Set<string>;
+};
+
+const INITIAL_SELECTED_DRAWABLE_IDS = new Set();
 
 const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
   drawableInfo,
   toolType,
+  selectedDrawableIds = INITIAL_SELECTED_DRAWABLE_IDS,
 }) => {
   const { id, type, color, x, y, width, height, points } = drawableInfo;
-  const draggable = toolType === ToolEnum.select;
+  const isSelectTool = toolType === ToolEnum.select;
+  const isSelected = isSelectTool && selectedDrawableIds.has(id);
   switch (type) {
     case ToolEnum.ellipse:
       return (
@@ -25,7 +33,8 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
           y={y}
           width={width}
           height={height}
-          draggable={draggable}
+          draggable={isSelectTool}
+          isSelected={isSelected}
         />
       );
     case ToolEnum.rect:
@@ -37,7 +46,8 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
           y={y}
           width={width}
           height={height}
-          draggable={draggable}
+          draggable={isSelectTool}
+          isSelected={isSelected}
         />
       );
     case ToolEnum.polygon: {
@@ -53,8 +63,9 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
           id={id}
           color={color}
           points={points}
-          draggable={draggable}
+          draggable={isSelectTool}
           closed={isClosed}
+          isSelected={isSelected}
         />
       );
     }

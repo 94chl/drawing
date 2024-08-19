@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { Stage as StageType } from "konva/lib/Stage";
 import { Stage, Layer } from "react-konva";
+import { KonvaEventObject } from "konva/lib/Node";
 import { RootState } from "@/store";
 import genUid from "light-uid";
 import _ from "underscore";
@@ -53,6 +54,7 @@ const Canvas = () => {
 
   const canvasRef = useRef<null | HTMLDivElement>(null);
   const stageRef = useRef<null | StageType>(null);
+  const selectedDrawableIds = useRef<Set<string>>(new Set());
   const isDrawing = useRef(false);
   const isDrawableTool = [
     ToolEnum.ellipse,
@@ -81,11 +83,15 @@ const Canvas = () => {
   const selectDrawable = () => {
     if (stageRef?.current) {
       const pointerPosition = stageRef.current?.getPointerPosition();
-      console.log("POINTER", pointerPosition);
       if (pointerPosition) {
         const element = stageRef.current?.getIntersection(pointerPosition);
 
-        console.log("SELECT", element);
+        if (element) {
+          selectedDrawableIds.current.clear();
+          selectedDrawableIds.current.add(element.getAttr("id"));
+        } else {
+          selectedDrawableIds.current.clear();
+        }
       }
       isDrawing.current = false;
     }
@@ -94,11 +100,6 @@ const Canvas = () => {
   const finishDrawingDrawable = () => {
     if (!isDrawing.current) {
       initializeDrawable();
-      return;
-    }
-
-    if (toolType === ToolEnum.select) {
-      selectDrawable();
       return;
     }
 
@@ -141,38 +142,40 @@ const Canvas = () => {
     initializeDrawable();
   };
 
-  const drawingDrawable: React.MouseEventHandler<HTMLDivElement> = (e) => {
+  const drawingDrawable = (e: KonvaEventObject<MouseEvent>) => {
     if (!isDrawing.current) return;
 
-    const width =
-      drawablePoints.length > 1 ? drawablePoints[0][0] - e.clientX : 0;
-    const height =
-      drawablePoints.length > 1 ? drawablePoints[0][1] - e.clientY : 0;
-    const x = width < 0 ? drawablePoints[0][0] : e.clientX;
-    const y = height < 0 ? drawablePoints[0][1] : e.clientY;
+    const x = e.evt.clientX;
+    const y = e.evt.clientY;
+    const width = drawablePoints.length > 1 ? drawablePoints[0][0] - x : 0;
+    const height = drawablePoints.length > 1 ? drawablePoints[0][1] - y : 0;
+    const startPointX = width < 0 ? drawablePoints[0][0] : x;
+    const startPointY = height < 0 ? drawablePoints[0][1] : y;
 
     const newDrawable = {
       id: tempDrawable.id,
       type: toolType,
-      x,
-      y,
+      x: startPointX,
+      y: startPointY,
       width: Math.abs(width),
       height: Math.abs(height),
       points: [...drawablePoints],
       color,
     };
 
-    const newDrawablePoints: drawablePointsType = [
-      ...drawablePoints,
-      [e.clientX, e.clientY],
-    ];
+    const newDrawablePoints: drawablePointsType = [...drawablePoints, [x, y]];
     setDrawablePoints(newDrawablePoints);
     newDrawable.points = newDrawablePoints;
 
     setTempDrawable(newDrawable);
   };
 
-  const startDrawDrawable: React.MouseEventHandler<HTMLDivElement> = (e) => {
+  const startDrawDrawable = (e: KonvaEventObject<MouseEvent>) => {
+    if (toolType === ToolEnum.select) {
+      selectDrawable();
+      return;
+    }
+
     if (isDrawing.current === false) {
       isDrawing.current = true;
       drawingDrawable(e);
@@ -224,15 +227,15 @@ const Canvas = () => {
         cursor: ${isDrawableTool ? "crosshair" : "default"};
       `}
       ref={canvasRef}
-      onMouseMove={drawingDrawable}
-      onMouseDown={startDrawDrawable}
-      onMouseUp={finishDrawingDrawable}
       onKeyDown={(e) => e.key === "Escape" && initializeDrawable()}
     >
       <Stage
         ref={stageRef}
         width={canvasContainer.width}
         height={canvasContainer.height}
+        onMouseMove={drawingDrawable}
+        onMouseDown={startDrawDrawable}
+        onMouseUp={finishDrawingDrawable}
       >
         <Layer>
           {Object.values(drawables).map((drawableInfo, index) => {
@@ -242,6 +245,7 @@ const Canvas = () => {
                 drawableInfo={drawableInfo}
                 toolType={toolType}
                 key={key}
+                selectedDrawableIds={selectedDrawableIds.current}
               />
             );
           })}
