@@ -45,12 +45,12 @@ const EllipseDrawable: React.FC<React.PropsWithChildren<Props>> = ({
         radiusX={width / 2}
         radiusY={height / 2}
         fill={color}
-        x={x + width / 2}
-        y={y + height / 2}
+        x={x}
+        y={y}
         width={width}
         height={height}
         opacity={0.3}
-        draggable={draggable}
+        draggable={isSelected}
         onMouseEnter={(e) => draggable && setCursorStyle(e, "grab")}
         onMouseLeave={(e) => setCursorStyle(e, "inherit")}
         onDragEnd={moveDrawablePosition}

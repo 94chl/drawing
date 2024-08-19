@@ -47,6 +47,8 @@ const useDragDrawablePosition = ({ id }: Props) => {
                 layersHistory.length - layersHistoryLimit + 1 <= index &&
                 index < layersHistoryLimit
             );
+      newLayersHistory.push(newDrawables);
+
       const nextIndex =
         layersNow + 1 < layersHistoryLimit - 1
           ? layersNow + 1

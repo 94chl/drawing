@@ -151,12 +151,13 @@ const Canvas = () => {
     const height = drawablePoints.length > 1 ? drawablePoints[0][1] - y : 0;
     const startPointX = width < 0 ? drawablePoints[0][0] : x;
     const startPointY = height < 0 ? drawablePoints[0][1] : y;
+    const isEllipse = toolType === ToolEnum.ellipse;
 
     const newDrawable = {
       id: tempDrawable.id,
       type: toolType,
-      x: startPointX,
-      y: startPointY,
+      x: isEllipse ? startPointX + Math.abs(width) / 2 : startPointX,
+      y: isEllipse ? startPointY + Math.abs(height) / 2 : startPointY,
       width: Math.abs(width),
       height: Math.abs(height),
       points: [...drawablePoints],
@@ -218,6 +219,12 @@ const Canvas = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (selectedDrawableIds.current.size > 0) {
+      selectedDrawableIds.current.clear();
+    }
+  }, [toolType]);
 
   return (
     <div

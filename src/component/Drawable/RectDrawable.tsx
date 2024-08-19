@@ -48,7 +48,7 @@ const RectDrawable: React.FC<React.PropsWithChildren<Props>> = ({
         width={width}
         height={height}
         opacity={0.3}
-        draggable={draggable}
+        draggable={isSelected}
         onMouseEnter={(e) => draggable && setCursorStyle(e, "grab")}
         onMouseLeave={(e) => setCursorStyle(e, "inherit")}
         onDragEnd={moveDrawablePosition}

@@ -43,7 +43,7 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
         points={points.flat()}
         opacity={0.3}
         closed={closed}
-        draggable={draggable}
+        draggable={isSelected}
         onMouseEnter={(e) => draggable && setCursorStyle(e, "grab")}
         onMouseLeave={(e) => setCursorStyle(e, "inherit")}
         onDragEnd={moveDrawablePosition}

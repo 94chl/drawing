@@ -63,8 +63,8 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
           id={id}
           color={color}
           points={points}
-          draggable={isSelectTool}
           closed={isClosed}
+          draggable={isSelectTool}
           isSelected={isSelected}
         />
       );
