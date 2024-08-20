@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { Stage as StageType } from "konva/lib/Stage";
-import { Stage, Layer } from "react-konva";
+import { Stage, Layer, Image } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { RootState } from "@/store";
 import genUid from "light-uid";
@@ -34,6 +34,7 @@ const Canvas = () => {
     layersHistory,
     layersNow,
     layersHistoryLimit,
+    imageFile,
   } = useSelector((store: RootState) => store.canvas, shallowEqual);
 
   const [canvasContainer, setCanvasContainer] = useState({
@@ -66,6 +67,13 @@ const Canvas = () => {
 
   const [storedDrawables, setStoredDrawables] =
     useLocalStorage<drawableInfoBufferType>(LocalStorageKey.drawables, {});
+
+  const imageObject = useMemo(() => {
+    const imageInfo = new window.Image();
+    imageInfo.src = imageFile;
+
+    return imageInfo;
+  }, [imageFile]);
 
   const initializeDrawable = useCallback(() => {
     setTempDrawable({
@@ -305,6 +313,13 @@ const Canvas = () => {
         onMouseUp={finishDrawingDrawable}
       >
         <Layer>
+          {imageFile && (
+            <Image
+              image={imageObject}
+              width={canvasContainer.width}
+              height={canvasContainer.height}
+            ></Image>
+          )}
           {Object.values(drawables).map((drawableInfo, index) => {
             const key = `${drawableInfo.type}_${index}`;
             return (

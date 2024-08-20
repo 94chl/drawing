@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
 import { css } from "@emotion/react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { RootState } from "@/store";
@@ -8,6 +8,7 @@ import {
   setDrawables,
   setColor,
   setToolType,
+  setImageFile,
 } from "@/store/canvas";
 
 import useLocalStorage from "@/hook/useLocalStorage";
@@ -16,8 +17,9 @@ import type { drawableInfoBufferType } from "@/utils/type";
 import { isEmpty } from "underscore";
 
 import {
-  ToggleButtonGroup,
-  ToggleButton,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
   Button,
   TextField,
 } from "@mui/material";
@@ -41,8 +43,25 @@ const Tools = () => {
     {}
   );
 
-  const onChangeToolType = (_: React.MouseEvent, value: ToolEnum) => {
-    dispatch(setToolType(value));
+  const uploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.item(0) ?? null;
+    if (file) {
+      const filePath = URL.createObjectURL(file);
+      dispatch(setImageFile(filePath));
+      e.target.value = "";
+    }
+  };
+
+  const initImage = () => {
+    if (window.confirm("Remove image?")) {
+      dispatch(setImageFile(""));
+    }
+  };
+
+  const onChangeToolType = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value as ToolEnum;
+    if (TOOL_TYPES.includes(value) && value !== toolType)
+      dispatch(setToolType(value));
   };
 
   const onChangeColor = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,22 +125,36 @@ const Tools = () => {
       `}
     >
       <div>
+        <h3>Upload Image</h3>
+        <div
+          css={css`
+            display: flex;
+          `}
+        >
+          <input type="file" accept="image/*" onChange={uploadImage} />
+          <Button onClick={initImage}>Remove Image</Button>
+        </div>
+      </div>
+      <div>
         <h3>Drawing Tool</h3>
-        <ToggleButtonGroup
-          value={toolType}
+        <RadioGroup
           onChange={onChangeToolType}
-          exclusive
+          css={css`
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+          `}
         >
           {TOOL_TYPES.map((toolTypeValue) => (
-            <ToggleButton
+            <FormControlLabel
+              checked={toolType === toolTypeValue}
               value={toolTypeValue}
-              selected={toolType === toolTypeValue}
+              label={toolTypeValue}
+              control={<Radio />}
               key={`TOOL_TYPE_${toolTypeValue}`}
-            >
-              {toolTypeValue}
-            </ToggleButton>
+            />
           ))}
-        </ToggleButtonGroup>
+        </RadioGroup>
       </div>
       <div>
         <h3>Drawing Color</h3>

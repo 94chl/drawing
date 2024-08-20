@@ -10,6 +10,7 @@ type CanvasStateType = {
   layersHistory: drawableInfoBufferType[];
   layersNow: number;
   layersHistoryLimit: number;
+  imageFile: string;
 };
 
 const initialState: CanvasStateType = {
@@ -19,6 +20,7 @@ const initialState: CanvasStateType = {
   layersHistory: [],
   layersNow: -1,
   layersHistoryLimit: 40,
+  imageFile: "",
 };
 
 const canvas = createSlice({
@@ -49,6 +51,9 @@ const canvas = createSlice({
     setLayersNow: (state, { payload }: PayloadAction<number>) => {
       state.layersNow = payload;
     },
+    setImageFile: (state, { payload }: PayloadAction<string>) => {
+      state.imageFile = payload;
+    },
   },
 });
 
@@ -59,5 +64,6 @@ export const {
   setDrawables,
   setLayersHitory,
   setLayersNow,
+  setImageFile,
 } = canvas.actions;
 export default canvas.reducer;
