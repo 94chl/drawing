@@ -10,11 +10,12 @@ import {
   setToolType,
   setImageFile,
 } from "@/store/canvas";
+import { isEmpty } from "underscore";
 
 import useLocalStorage from "@/hook/useLocalStorage";
+import useUndoRedo from "@/hook/useUndoRedo";
 import { ToolEnum, LocalStorageKey } from "@/utils/const";
 import type { drawableInfoBufferType } from "@/utils/type";
-import { isEmpty } from "underscore";
 
 import {
   RadioGroup,
@@ -43,6 +44,8 @@ const Tools = () => {
     {}
   );
 
+  const { undo, redo } = useUndoRedo();
+
   const uploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.item(0) ?? null;
     if (file) {
@@ -66,28 +69,6 @@ const Tools = () => {
 
   const onChangeColor = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setColor(e.target.value));
-  };
-
-  const undo = () => {
-    const prevIndex =
-      layersNow > -1
-        ? layersNow > layersHistory.length - 1
-          ? layersHistory.length - 1
-          : layersNow - 1
-        : -1;
-
-    dispatch(setLayersNow(prevIndex));
-    dispatch(setDrawables(prevIndex > -1 ? layersHistory[prevIndex] : {}));
-  };
-
-  const redo = () => {
-    const nextIndex =
-      layersNow < layersHistory.length - 1
-        ? layersNow + 1
-        : layersHistory.length - 1;
-
-    dispatch(setLayersNow(nextIndex));
-    dispatch(setDrawables(nextIndex > -1 ? layersHistory[nextIndex] : {}));
   };
 
   const clearDrawables = () => {
