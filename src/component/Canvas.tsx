@@ -119,6 +119,45 @@ const Canvas = () => {
     }
   };
 
+  const removeDrawable = useCallback(() => {
+    if (selectedDrawableIds.current.size > 0) {
+      const newDrawables = structuredClone(drawables);
+      selectedDrawableIds.current.forEach((id) => {
+        delete newDrawables[id];
+      });
+      selectedDrawableIds.current.clear();
+      dispatch(setDrawables(newDrawables));
+      setStoredDrawables(newDrawables);
+
+      const newLayersHistory =
+        layersNow < layersHistoryLimit - 1
+          ? layersHistory.filter((_, index) => index <= layersNow)
+          : layersHistory.filter(
+              (_, index) =>
+                layersHistory.length - layersHistoryLimit + 1 <= index &&
+                index < layersHistoryLimit
+            );
+      newLayersHistory.push(newDrawables);
+
+      const nextIndex =
+        layersNow + 1 < layersHistoryLimit - 1
+          ? layersNow + 1
+          : layersHistoryLimit - 1;
+
+      dispatch(setLayersHitory(newLayersHistory));
+      dispatch(setLayersNow(nextIndex));
+
+      isDrawing.current = false;
+    }
+  }, [
+    dispatch,
+    drawables,
+    layersHistory,
+    layersHistoryLimit,
+    layersNow,
+    setStoredDrawables,
+  ]);
+
   const finishDrawingDrawable = () => {
     if (!isDrawing.current) {
       initializeDrawable();
@@ -259,7 +298,7 @@ const Canvas = () => {
         }
         case KeyboardKeyEnum.delete:
         case KeyboardKeyEnum.backspace: {
-          console.log("REMOVE");
+          removeDrawable();
           break;
         }
         case KeyboardKeyEnum.z: {
@@ -275,7 +314,7 @@ const Canvas = () => {
           break;
       }
     },
-    [initializeDrawable, redo, undo]
+    [initializeDrawable, redo, removeDrawable, undo]
   );
 
   useEffect(() => {
