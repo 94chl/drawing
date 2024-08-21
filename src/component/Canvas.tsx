@@ -9,12 +9,18 @@ import genUid from "light-uid";
 import _ from "underscore";
 
 import useLocalStorage from "@/hook/useLocalStorage";
+import useUndoRedo from "@/hook/useUndoRedo";
 import type {
   drawableInfoType,
   drawablePointsType,
   drawableInfoBufferType,
 } from "@/utils/type";
-import { ToolEnum, STANDARD_DRAWABLES, LocalStorageKey } from "@/utils/const";
+import {
+  ToolEnum,
+  STANDARD_DRAWABLES,
+  LocalStorageKey,
+  KeyboardKeyEnum,
+} from "@/utils/const";
 
 import {
   setLayersHitory,
@@ -67,6 +73,7 @@ const Canvas = () => {
 
   const [storedDrawables, setStoredDrawables] =
     useLocalStorage<drawableInfoBufferType>(LocalStorageKey.drawables, {});
+  const { undo, redo } = useUndoRedo();
 
   const imageObject = useMemo(() => {
     const imageInfo = new window.Image();
@@ -242,12 +249,33 @@ const Canvas = () => {
 
   const onKeyDownHandler = useCallback(
     (e: KeyboardEvent) => {
-      const key = e.key;
-      if (isDrawing.current && key === "Escape") {
-        initializeDrawable();
+      const key = e.key.toLowerCase();
+      const isCtrlKey = e.ctrlKey;
+      const isShifKey = e.shiftKey;
+      switch (key) {
+        case KeyboardKeyEnum.escape: {
+          if (isDrawing.current) initializeDrawable();
+          break;
+        }
+        case KeyboardKeyEnum.delete:
+        case KeyboardKeyEnum.backspace: {
+          console.log("REMOVE");
+          break;
+        }
+        case KeyboardKeyEnum.z: {
+          if (isCtrlKey && !isShifKey) {
+            undo();
+          }
+          if (isCtrlKey && isShifKey) {
+            redo();
+          }
+          break;
+        }
+        default:
+          break;
       }
     },
-    [initializeDrawable]
+    [initializeDrawable, redo, undo]
   );
 
   useEffect(() => {
