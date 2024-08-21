@@ -95,15 +95,18 @@ const Canvas = () => {
       const pointerPosition = stageRef.current?.getPointerPosition();
       if (pointerPosition) {
         const element = stageRef.current?.getIntersection(pointerPosition);
+
         if (element) {
           const targetId = element.getAttr("id");
-          if (!selectedDrawableIds.current.has(targetId) && targetId) {
-            selectedDrawableIds.current.clear();
+          if (targetId) {
+            if (!selectedDrawableIds.current.has(targetId))
+              selectedDrawableIds.current.clear();
             selectedDrawableIds.current.add(targetId);
+            isDrawing.current = false;
+            return;
           }
-        } else {
-          selectedDrawableIds.current.clear();
         }
+        selectedDrawableIds.current.clear();
       }
       isDrawing.current = false;
     }
