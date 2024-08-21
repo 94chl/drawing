@@ -97,7 +97,7 @@ const Canvas = () => {
     isDrawing.current = false;
   }, [color, toolType]);
 
-  const selectDrawable = () => {
+  const selectDrawable = (e: KonvaEventObject<MouseEvent>) => {
     if (stageRef?.current) {
       const pointerPosition = stageRef.current?.getPointerPosition();
       if (pointerPosition) {
@@ -106,7 +106,8 @@ const Canvas = () => {
         if (element) {
           const targetId = element.getAttr("id");
           if (targetId) {
-            if (!selectedDrawableIds.current.has(targetId))
+            const isCtrlKey = e.evt.ctrlKey;
+            if (!isCtrlKey && !selectedDrawableIds.current.has(targetId))
               selectedDrawableIds.current.clear();
             selectedDrawableIds.current.add(targetId);
             isDrawing.current = false;
@@ -265,7 +266,7 @@ const Canvas = () => {
 
   const startDrawDrawable = (e: KonvaEventObject<MouseEvent>) => {
     if (toolType === ToolEnum.select) {
-      selectDrawable();
+      selectDrawable(e);
       return;
     }
 
