@@ -10,4 +10,5 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  base: "/<REPO>/",
 });
