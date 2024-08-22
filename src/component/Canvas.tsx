@@ -59,6 +59,7 @@ const Canvas = () => {
   const stageRef = useRef<null | StageType>(null);
   const selectedDrawableIds = useRef<Set<string>>(new Set());
   const isDrawing = useRef(false);
+  const isTrasforming = useRef(false);
   const isDrawableTool = [
     ToolEnum.ellipse,
     ToolEnum.rect,
@@ -96,12 +97,17 @@ const Canvas = () => {
     isDrawing.current = false;
   }, [color, toolType]);
 
+  const setIsTransforming = (value: boolean) => {
+    isTrasforming.current = value;
+  };
+
   const selectDrawable = (e: KonvaEventObject<MouseEvent>) => {
+    if (isTrasforming.current) return;
+
     if (stageRef?.current) {
       const pointerPosition = stageRef.current?.getPointerPosition();
       if (pointerPosition) {
         const element = stageRef.current?.getIntersection(pointerPosition);
-
         if (element) {
           const targetId = element.getAttr("id");
           if (targetId) {
@@ -136,7 +142,6 @@ const Canvas = () => {
 
   const finishDrawingDrawable = () => {
     if (!isDrawing.current) {
-      console.log("INIT");
       initializeDrawable();
       return;
     }
@@ -358,12 +363,17 @@ const Canvas = () => {
                 toolType={toolType}
                 key={key}
                 selectedDrawableIds={selectedDrawableIds.current}
+                setIsTransforming={setIsTransforming}
               />
             );
           })}
 
           {!_.isEmpty(tempDrawable.points) && (
-            <Drawable drawableInfo={tempDrawable} toolType={toolType} />
+            <Drawable
+              drawableInfo={tempDrawable}
+              toolType={toolType}
+              setIsTransforming={setIsTransforming}
+            />
           )}
         </Layer>
       </Stage>

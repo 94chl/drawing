@@ -11,6 +11,7 @@ type Props = {
   drawableInfo: drawableInfoType;
   toolType: ToolEnum;
   selectedDrawableIds?: Set<string>;
+  setIsTransforming: (value: boolean) => void;
 };
 
 const INITIAL_SELECTED_DRAWABLE_IDS = new Set();
@@ -19,6 +20,7 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
   drawableInfo,
   toolType,
   selectedDrawableIds = INITIAL_SELECTED_DRAWABLE_IDS,
+  setIsTransforming,
 }) => {
   const { id, type, color, x, y, width, height, points } = drawableInfo;
   const isSelectTool = toolType === ToolEnum.select;
@@ -35,6 +37,7 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
           height={height}
           draggable={isSelectTool}
           isSelected={isSelected}
+          setIsTransforming={setIsTransforming}
         />
       );
     case ToolEnum.rect:
@@ -48,6 +51,7 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
           height={height}
           draggable={isSelectTool}
           isSelected={isSelected}
+          setIsTransforming={setIsTransforming}
         />
       );
     case ToolEnum.polygon: {
@@ -66,6 +70,7 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
           closed={isClosed}
           draggable={isSelectTool}
           isSelected={isSelected}
+          setIsTransforming={setIsTransforming}
         />
       );
     }
