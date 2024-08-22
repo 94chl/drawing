@@ -10,6 +10,7 @@ import _ from "underscore";
 
 import useLocalStorage from "@/hook/useLocalStorage";
 import useUndoRedo from "@/hook/useUndoRedo";
+import useAddLayerHistory from "@/hook/useAddLayerHistory";
 import type {
   drawableInfoType,
   drawablePointsType,
@@ -33,15 +34,10 @@ import Drawable from "./Drawable/Drawable";
 
 const Canvas = () => {
   const dispatch = useDispatch();
-  const {
-    drawables,
-    toolType,
-    color,
-    layersHistory,
-    layersNow,
-    layersHistoryLimit,
-    imageFile,
-  } = useSelector((store: RootState) => store.canvas, shallowEqual);
+  const { drawables, toolType, color, layersHistory, imageFile } = useSelector(
+    (store: RootState) => store.canvas,
+    shallowEqual
+  );
 
   const [canvasContainer, setCanvasContainer] = useState({
     width: 40,
@@ -71,9 +67,12 @@ const Canvas = () => {
   const isStandardDrawableType = STANDARD_DRAWABLES.includes(toolType);
   const isPolygon = toolType === ToolEnum.polygon;
 
-  const [storedDrawables, setStoredDrawables] =
-    useLocalStorage<drawableInfoBufferType>(LocalStorageKey.drawables, {});
+  const [storedDrawables] = useLocalStorage<drawableInfoBufferType>(
+    LocalStorageKey.drawables,
+    {}
+  );
   const { undo, redo } = useUndoRedo();
+  const addLayerHistory = useAddLayerHistory();
 
   const imageObject = useMemo(() => {
     const imageInfo = new window.Image();
@@ -128,39 +127,16 @@ const Canvas = () => {
       });
       selectedDrawableIds.current.clear();
       dispatch(setDrawables(newDrawables));
-      setStoredDrawables(newDrawables);
 
-      const newLayersHistory =
-        layersNow < layersHistoryLimit - 1
-          ? layersHistory.filter((_, index) => index <= layersNow)
-          : layersHistory.filter(
-              (_, index) =>
-                layersHistory.length - layersHistoryLimit + 1 <= index &&
-                index < layersHistoryLimit
-            );
-      newLayersHistory.push(newDrawables);
-
-      const nextIndex =
-        layersNow + 1 < layersHistoryLimit - 1
-          ? layersNow + 1
-          : layersHistoryLimit - 1;
-
-      dispatch(setLayersHitory(newLayersHistory));
-      dispatch(setLayersNow(nextIndex));
+      addLayerHistory(newDrawables);
 
       isDrawing.current = false;
     }
-  }, [
-    dispatch,
-    drawables,
-    layersHistory,
-    layersHistoryLimit,
-    layersNow,
-    setStoredDrawables,
-  ]);
+  }, [addLayerHistory, dispatch, drawables]);
 
   const finishDrawingDrawable = () => {
     if (!isDrawing.current) {
+      console.log("INIT");
       initializeDrawable();
       return;
     }
@@ -213,25 +189,8 @@ const Canvas = () => {
 
     const newDrawables = structuredClone(drawables);
     newDrawables[newDrawable.id] = newDrawable;
-    setStoredDrawables(newDrawables);
 
-    const newLayersHistory =
-      layersNow < layersHistoryLimit - 1
-        ? layersHistory.filter((_, index) => index <= layersNow)
-        : layersHistory.filter(
-            (_, index) =>
-              layersHistory.length - layersHistoryLimit + 1 <= index &&
-              index < layersHistoryLimit
-          );
-    newLayersHistory.push(newDrawables);
-
-    const nextIndex =
-      layersNow + 1 < layersHistoryLimit - 1
-        ? layersNow + 1
-        : layersHistoryLimit - 1;
-
-    dispatch(setLayersHitory(newLayersHistory));
-    dispatch(setLayersNow(nextIndex));
+    addLayerHistory(newDrawables);
 
     initializeDrawable();
   };

@@ -1,11 +1,9 @@
 import { RootState } from "@/store";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { setDrawable, setLayersHitory, setLayersNow } from "@/store/canvas";
+import { setDrawable } from "@/store/canvas";
 import { KonvaEventObject } from "konva/lib/Node";
 
-import useLocalStorage from "./useLocalStorage";
-import type { drawableInfoBufferType } from "@/utils/type";
-import { LocalStorageKey } from "@/utils/const";
+import useAddLayerHistory from "./useAddLayerHistory";
 
 type Props = {
   id: string;
@@ -13,13 +11,12 @@ type Props = {
 
 const useDragDrawablePosition = ({ id }: Props) => {
   const dispatch = useDispatch();
-  const { drawables, layersNow, layersHistoryLimit, layersHistory } =
-    useSelector((store: RootState) => store.canvas, shallowEqual);
-
-  const [, setStoredDrawables] = useLocalStorage<drawableInfoBufferType>(
-    LocalStorageKey.drawables,
-    {}
+  const { drawables } = useSelector(
+    (store: RootState) => store.canvas,
+    shallowEqual
   );
+
+  const addLayerHistory = useAddLayerHistory();
 
   const moveDrawablePosition = (e: KonvaEventObject<DragEvent>) => {
     const { x, y } = e.currentTarget.position();
@@ -37,25 +34,8 @@ const useDragDrawablePosition = ({ id }: Props) => {
 
       const newDrawables = structuredClone(drawables);
       newDrawables[newDrawable.id] = newDrawable;
-      setStoredDrawables(newDrawables);
 
-      const newLayersHistory =
-        layersNow < layersHistoryLimit - 1
-          ? layersHistory.filter((_, index) => index <= layersNow)
-          : layersHistory.filter(
-              (_, index) =>
-                layersHistory.length - layersHistoryLimit + 1 <= index &&
-                index < layersHistoryLimit
-            );
-      newLayersHistory.push(newDrawables);
-
-      const nextIndex =
-        layersNow + 1 < layersHistoryLimit - 1
-          ? layersNow + 1
-          : layersHistoryLimit - 1;
-
-      dispatch(setLayersHitory(newLayersHistory));
-      dispatch(setLayersNow(nextIndex));
+      addLayerHistory(newDrawables);
     }
   };
 
