@@ -13,6 +13,7 @@ type Props = {
   closed?: boolean;
   draggable: boolean;
   isSelected?: boolean;
+  setIsTransforming: (value: boolean) => void;
 };
 
 const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
@@ -22,11 +23,16 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
   closed = false,
   draggable,
   isSelected = false,
+  setIsTransforming,
 }) => {
   const moveDrawablePosition = useDragDrawablePosition({ id });
 
   const polygonRef = useRef<null | LineType>(null);
   const transformerRef = useRef<null | TransformerType>(null);
+
+  const onTransformEnd = () => {
+    setIsTransforming(false);
+  };
 
   useEffect(() => {
     if (isSelected && transformerRef.current && polygonRef.current) {
@@ -48,6 +54,10 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
         onMouseEnter={(e) => draggable && setCursorStyle(e, "grab")}
         onMouseLeave={(e) => setCursorStyle(e, "inherit")}
         onDragEnd={moveDrawablePosition}
+        onTransformStart={() => {
+          setIsTransforming(true);
+        }}
+        onTransformEnd={onTransformEnd}
         ref={polygonRef}
       />
       {isSelected && <Transformer ref={transformerRef} ignoreStroke />}
