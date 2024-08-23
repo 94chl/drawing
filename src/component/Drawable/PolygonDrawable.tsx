@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { Line, Transformer } from "react-konva";
 import type { Line as LineType } from "konva/lib/shapes/Line";
 import type { Transformer as TransformerType } from "konva/lib/shapes/Transformer";
+import { KonvaEventObject } from "konva/lib/Node";
 
 import { setCursorStyle } from "./utils";
 import useDragDrawablePosition from "@/hook/useDragDrawablePosition";
@@ -30,6 +31,11 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
   const polygonRef = useRef<null | LineType>(null);
   const transformerRef = useRef<null | TransformerType>(null);
 
+  const onDragEnd = (e: KonvaEventObject<DragEvent>) => {
+    moveDrawablePosition(e);
+    polygonRef.current?.position({ x: 0, y: 0 });
+  };
+
   const onTransformEnd = () => {
     setIsTransforming(false);
   };
@@ -53,14 +59,16 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
         draggable={isSelected}
         onMouseEnter={(e) => draggable && setCursorStyle(e, "grab")}
         onMouseLeave={(e) => setCursorStyle(e, "inherit")}
-        onDragEnd={moveDrawablePosition}
+        onDragEnd={onDragEnd}
         onTransformStart={() => {
           setIsTransforming(true);
         }}
         onTransformEnd={onTransformEnd}
         ref={polygonRef}
       />
-      {isSelected && <Transformer ref={transformerRef} ignoreStroke />}
+      {isSelected && (
+        <Transformer ref={transformerRef} ignoreStroke rotateEnabled={false} />
+      )}
     </>
   );
 };
