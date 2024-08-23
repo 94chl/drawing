@@ -1,3 +1,4 @@
+import { drawablePointsType } from "@/utils/type";
 import { KonvaEventObject } from "konva/lib/Node";
 import { Transform } from "konva/lib/Util";
 
@@ -86,22 +87,20 @@ export type transformedPolygonAttrsType = transformedAttrsType & {
 };
 
 export const getResizedPolygon = ({
-  transformedInfo,
-  transform,
+  targetPoints,
+  transformObj,
 }: {
-  transformedInfo: transformedPolygonAttrsType;
-  transform: Transform;
+  targetPoints: number[];
+  transformObj: Transform;
 }) => {
-  const { points: targetPoints } = transformedInfo;
-
-  const newPoints: [number, number][] = [];
+  const updatedPoints: drawablePointsType = [];
   for (let i = 0; i < targetPoints?.length; i += 2) {
-    const point = transform.point({
+    const point = transformObj.point({
       x: targetPoints[i],
       y: targetPoints[i + 1],
     });
-    newPoints.push([Math.round(point.x), Math.round(point.y)]);
+    updatedPoints.push([Math.round(point.x), Math.round(point.y)]);
   }
 
-  return newPoints;
+  return updatedPoints;
 };

@@ -4,8 +4,9 @@ import type { Line as LineType } from "konva/lib/shapes/Line";
 import type { Transformer as TransformerType } from "konva/lib/shapes/Transformer";
 import { KonvaEventObject } from "konva/lib/Node";
 
-import { setCursorStyle } from "./utils";
+import { getResizedPolygon, setCursorStyle } from "./utils";
 import useDragDrawablePosition from "@/hook/useDragDrawablePosition";
+import useTransformDrawable from "@/hook/useTransformDrawable";
 
 type Props = {
   id: string;
@@ -27,6 +28,7 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
   setIsTransforming,
 }) => {
   const moveDrawablePosition = useDragDrawablePosition({ id });
+  const transformDrawable = useTransformDrawable({ id });
 
   const polygonRef = useRef<null | LineType>(null);
   const transformerRef = useRef<null | TransformerType>(null);
@@ -36,7 +38,20 @@ const PolygonDrawable: React.FC<React.PropsWithChildren<Props>> = ({
     polygonRef.current?.position({ x: 0, y: 0 });
   };
 
-  const onTransformEnd = () => {
+  const onTransformEnd = (e: KonvaEventObject<Event>) => {
+    const targetPolygon = polygonRef.current;
+    if (targetPolygon) {
+      const targetPoints: number[] = e.currentTarget.attrs.points ?? [];
+      const transformObj = e.currentTarget.getTransform();
+
+      const updatedPoints = getResizedPolygon({ targetPoints, transformObj });
+
+      transformDrawable({ points: updatedPoints });
+
+      targetPolygon.scale({ x: 1, y: 1 });
+      targetPolygon.rotation(0);
+      targetPolygon.position({ x: 0, y: 0 });
+    }
     setIsTransforming(false);
   };
 
