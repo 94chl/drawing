@@ -78,7 +78,12 @@ const RectDrawable: React.FC<React.PropsWithChildren<Props>> = ({
         ref={rectRef}
       />
       {isSelected && (
-        <Transformer ref={transformerRef} keepRatio={false} ignoreStroke />
+        <Transformer
+          ref={transformerRef}
+          keepRatio={false}
+          ignoreStroke
+          rotateEnabled={false}
+        />
       )}
     </>
   );

@@ -82,7 +82,9 @@ const EllipseDrawable: React.FC<React.PropsWithChildren<Props>> = ({
         onTransformEnd={onTransformEnd}
         ref={ellipseRef}
       />
-      {isSelected && <Transformer ref={transformerRef} ignoreStroke />}
+      {isSelected && (
+        <Transformer ref={transformerRef} ignoreStroke rotateEnabled={false} />
+      )}
     </>
   );
 };
