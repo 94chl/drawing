@@ -7,6 +7,7 @@ type CanvasStateType = {
   toolType: ToolEnum;
   color: string;
   drawables: drawableInfoBufferType;
+  selectedDrawableIds: Record<string, string>;
   layersHistory: drawableInfoBufferType[];
   layersNow: number;
   layersHistoryLimit: number;
@@ -17,6 +18,7 @@ const initialState: CanvasStateType = {
   toolType: ToolEnum.rect,
   color: "#000000",
   drawables: {},
+  selectedDrawableIds: {},
   layersHistory: [],
   layersNow: -1,
   layersHistoryLimit: 40,
@@ -42,6 +44,15 @@ const canvas = createSlice({
     ) => {
       state.drawables = payload;
     },
+    addSelectedDrawableId: (state, { payload }: PayloadAction<string>) => {
+      state.selectedDrawableIds[payload] = payload;
+    },
+    setSelectedDrawableIds: (
+      state,
+      { payload }: PayloadAction<Record<string, string>>
+    ) => {
+      state.selectedDrawableIds = payload;
+    },
     setLayersHitory: (
       state,
       { payload }: PayloadAction<drawableInfoBufferType[]>
@@ -62,6 +73,8 @@ export const {
   setColor,
   setDrawable,
   setDrawables,
+  addSelectedDrawableId,
+  setSelectedDrawableIds,
   setLayersHitory,
   setLayersNow,
   setImageFile,

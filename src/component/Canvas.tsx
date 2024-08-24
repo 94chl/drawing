@@ -4,9 +4,18 @@ import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { Stage as StageType } from "konva/lib/Stage";
 import { Stage, Layer, Image } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { RootState } from "@/store";
 import genUid from "light-uid";
 import _ from "underscore";
+
+import { RootState } from "@/store";
+import {
+  setLayersHitory,
+  setLayersNow,
+  setDrawable,
+  setDrawables,
+  addSelectedDrawableId,
+  setSelectedDrawableIds,
+} from "@/store/canvas";
 
 import useLocalStorage from "@/hook/useLocalStorage";
 import useUndoRedo from "@/hook/useUndoRedo";
@@ -23,21 +32,18 @@ import {
   KeyboardKeyEnum,
 } from "@/utils/const";
 
-import {
-  setLayersHitory,
-  setLayersNow,
-  setDrawable,
-  setDrawables,
-} from "@/store/canvas";
-
 import Drawable from "./Drawable/Drawable";
 
 const Canvas = () => {
   const dispatch = useDispatch();
-  const { drawables, toolType, color, layersHistory, imageFile } = useSelector(
-    (store: RootState) => store.canvas,
-    shallowEqual
-  );
+  const {
+    toolType,
+    color,
+    drawables,
+    selectedDrawableIds,
+    layersHistory,
+    imageFile,
+  } = useSelector((store: RootState) => store.canvas, shallowEqual);
 
   const [canvasContainer, setCanvasContainer] = useState({
     width: 40,
@@ -57,7 +63,6 @@ const Canvas = () => {
 
   const canvasRef = useRef<null | HTMLDivElement>(null);
   const stageRef = useRef<null | StageType>(null);
-  const selectedDrawableIds = useRef<Set<string>>(new Set());
   const isDrawing = useRef(false);
   const isTrasforming = useRef(false);
   const isDrawableTool = [
@@ -112,33 +117,33 @@ const Canvas = () => {
           const targetId = element.getAttr("id");
           if (targetId) {
             const isCtrlKey = e.evt.ctrlKey;
-            if (!isCtrlKey && !selectedDrawableIds.current.has(targetId))
-              selectedDrawableIds.current.clear();
-            selectedDrawableIds.current.add(targetId);
+            if (!isCtrlKey && !selectedDrawableIds[targetId])
+              dispatch(setSelectedDrawableIds({}));
+            dispatch(addSelectedDrawableId(targetId));
             isDrawing.current = false;
             return;
           }
         }
-        selectedDrawableIds.current.clear();
+        dispatch(setSelectedDrawableIds({}));
       }
       isDrawing.current = false;
     }
   };
 
   const removeDrawable = useCallback(() => {
-    if (selectedDrawableIds.current.size > 0) {
+    if (!_.isEmpty(selectedDrawableIds)) {
       const newDrawables = structuredClone(drawables);
-      selectedDrawableIds.current.forEach((id) => {
+      Object.values(selectedDrawableIds).forEach((id) => {
         delete newDrawables[id];
       });
-      selectedDrawableIds.current.clear();
+      dispatch(setSelectedDrawableIds({}));
       dispatch(setDrawables(newDrawables));
 
       addLayerHistory(newDrawables);
 
       isDrawing.current = false;
     }
-  }, [addLayerHistory, dispatch, drawables]);
+  }, [addLayerHistory, dispatch, drawables, selectedDrawableIds]);
 
   const finishDrawingDrawable = () => {
     if (!isDrawing.current) {
@@ -325,10 +330,13 @@ const Canvas = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedDrawableIds.current.size > 0) {
-      selectedDrawableIds.current.clear();
+    if (!_.isEmpty(selectedDrawableIds)) {
+      const diffSelectedIds = Object.values(selectedDrawableIds).filter(
+        (id) => !drawables[id]
+      );
+      if (!_.isEmpty(diffSelectedIds)) dispatch(setSelectedDrawableIds({}));
     }
-  }, [toolType]);
+  }, [dispatch, drawables, selectedDrawableIds]);
 
   return (
     <div
@@ -363,7 +371,7 @@ const Canvas = () => {
                 drawableInfo={drawableInfo}
                 toolType={toolType}
                 key={key}
-                selectedDrawableIds={selectedDrawableIds.current}
+                selectedDrawableIds={selectedDrawableIds}
                 setIsTransforming={setIsTransforming}
               />
             );

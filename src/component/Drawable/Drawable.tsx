@@ -10,11 +10,11 @@ import PolygonDrawable from "./PolygonDrawable";
 type Props = {
   drawableInfo: drawableInfoType;
   toolType: ToolEnum;
-  selectedDrawableIds?: Set<string>;
+  selectedDrawableIds?: Record<string, string>;
   setIsTransforming: (value: boolean) => void;
 };
 
-const INITIAL_SELECTED_DRAWABLE_IDS = new Set();
+const INITIAL_SELECTED_DRAWABLE_IDS: Record<string, string> = {};
 
 const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
   drawableInfo,
@@ -24,7 +24,7 @@ const Drawable: React.FC<React.PropsWithChildren<Props>> = ({
 }) => {
   const { id, type, color, x, y, width, height, points } = drawableInfo;
   const isSelectTool = toolType === ToolEnum.select;
-  const isSelected = isSelectTool && selectedDrawableIds.has(id);
+  const isSelected = isSelectTool && !!selectedDrawableIds[id];
   switch (type) {
     case ToolEnum.ellipse:
       return (
