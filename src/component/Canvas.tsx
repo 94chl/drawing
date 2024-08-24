@@ -336,6 +336,7 @@ const Canvas = () => {
         height: 100vh;
         width: 80vw;
         cursor: ${isDrawableTool ? "crosshair" : "default"};
+        overflow: hidden;
       `}
       ref={canvasRef}
     >
